@@ -31,22 +31,22 @@ export const registrar = async (request, response) => {
   const { nome, email, senha, papel } = request.body;
 
   if (!nome) {
-    response.status(400).json({ err: "O nome é obirgatoria" });
+    response.status(400).json({ err: "O nome é obrigatório" });
     return;
   }
   if (!email) {
-    response.status(400).json({ err: "O email é obirgatoria" });
+    response.status(400).json({ err: "O email é obrigatório" });
     return;
   }
   if (!senha) {
-    response.status(400).json({ err: "A senha é obirgatoria" });
+    response.status(400).json({ err: "A senha é obrigatória" });
     return;
   }
 
   const emailExiste = await Usuario.findAll({ where: { email: email } });
 
   if (emailExiste.length > 0) {
-    response.status(409).json({ err: "já existe um usuario com este email" });
+    response.status(409).json({ err: "já existe um usuário com este email" });
     return;
   }
 
@@ -59,9 +59,39 @@ export const registrar = async (request, response) => {
 
   try {
     await Usuario.create(novoUsuario);
-    response.status(201).json({ msg: "usuario Cadastrado" });
+    response.status(201).json({ msg: "usuário Cadastrado" });
   } catch (error) {
     console.error(error);
-    response.status(500).json({ err: "Erro ao cadastrar usuario" });
+    response.status(500).json({ err: "Erro ao cadastrar usuário" });
   }
 };
+
+export const atualizar = async (request, response) => {
+  const paramValidator = getSchema.safeParse(request.params);
+  if(!paramValidator.success){
+      response.status(400).json({
+          message: "Número de identificação está inválido",
+          detalhes: formatZodError(paramValidator.error),
+      })
+      return
+  }
+
+  const updateValidator = updateUsuarioSchema.safeParse(request.body)
+
+  const {id} = request.params
+  const {nome, email, senha, papel} = request.body
+
+  const usuarioAtualizado = {
+      nome, 
+      email, 
+      senha, 
+      papel
+  }
+
+  try {
+      await Usuario.update(usuarioAtualizado, {where: {id}});
+      response.status(200).json({message: "Usuário atualizado"});
+  } catch (error) {
+      response.status(500).json({message: "Erro ao atualizar usuário"});
+  }
+}

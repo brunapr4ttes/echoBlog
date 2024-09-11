@@ -35,7 +35,7 @@ conn
   .sync()
   .then(() => {
     app.listen(PORT, () => {
-      console.log("🛵 Servidor rodando na port:", PORT);
+      console.log("Servidor rodando ON port:", PORT);
     });
   })
   .catch((err) => console.error(err));

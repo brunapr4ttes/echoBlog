@@ -48,15 +48,15 @@ export const create = async (request, response) => {
   }
 
   if (!titulo) {
-    response.status(400).json({ err: "O titulo é obirgatoria" });
+    response.status(400).json({ err: "O título é obrigatório" });
     return;
   }
   if (!conteudo) {
-    response.status(400).json({ err: "O conteudo é obirgatoria" });
+    response.status(400).json({ err: "O conteúdo é obrigatório" });
     return;
   }
   if (!autor) {
-    response.status(400).json({ err: "O autor é obirgatoria" });
+    response.status(400).json({ err: "O autor é obrigatório" });
     return;
   }
 
@@ -122,7 +122,7 @@ export const updatePostagem = async (request, response) => {
   const paramValidation = updatePostagemSchema.safeParse(request.params);
   if (!paramValidation.success) {
     response.status(400).json({
-      msg: "Numero de identificação está inválido",
+      msg: "Número de identificação está inválido",
       detalhes: formatZodError(paramValidation.error),
     });
     return;
