@@ -21,50 +21,67 @@ export const registrar = async (request, response) => {
   const bodyValidation = registrarSchema.safeParse(request.body);
 
   if (!bodyValidation.success) {
-    response.status(400).json({
-      msg: "Os dados recebidos do corpo são invalidos",
+    return response.status(400).json({
+      msg: "Os dados recebidos do corpo são inválidos",
       detalhes: formatZodError(bodyValidation.error),
     });
-    return;
   }
 
-  const { nome, email, senha, papel } = request.body;
-
-  if (!nome) {
-    response.status(400).json({ err: "O nome é obrigatório" });
-    return;
-  }
-  if (!email) {
-    response.status(400).json({ err: "O email é obrigatório" });
-    return;
-  }
-  if (!senha) {
-    response.status(400).json({ err: "A senha é obrigatória" });
-    return;
-  }
-
-  const emailExiste = await Usuario.findAll({ where: { email: email } });
-
-  if (emailExiste.length > 0) {
-    response.status(409).json({ err: "já existe um usuário com este email" });
-    return;
-  }
-
-  const novoUsuario = {
-    nome,
-    email,
-    senha,
-    papel: papel || "leitor",
-  };
+  const { nome, email, senha, papel } = bodyValidation.data;
 
   try {
+    const emailExiste = await Usuario.findOne({ where: { email } });
+
+    if (emailExiste) {
+      return response.status(409).json({ err: "Já existe um usuário com este email" });
+    }
+
+    const novoUsuario = {
+      nome,
+      email,
+      senha, 
+      papel,
+    };
+
     await Usuario.create(novoUsuario);
-    response.status(201).json({ msg: "usuário Cadastrado" });
+    return response.status(201).json({ msg: "Usuário cadastrado com sucesso" });
+
   } catch (error) {
     console.error(error);
-    response.status(500).json({ err: "Erro ao cadastrar usuário" });
+    return response.status(500).json({ err: "Erro ao cadastrar usuário" });
   }
 };
+
+export const getUsuarios =  async (request, response) =>{
+  const {nome, email, papel} = request.body;
+
+  if (response.user.paper !== 'administrador') { //tem q usar token aqui mds como q faz isso
+    return response.status(403).json({ err: "Acesso negado. Apenas administradores podem acessar esta rota." });
+  }
+
+  try {
+    const where = {};
+
+    if (nome) {
+      where.nome = { [Op.iLike]: `%${nome}%` }; //o op.ilike é uma função do sequelize que não diferencia maiusculas de minusculas
+    }
+    if (email) {
+      where.email = { [Op.iLike]: `%${email}%` }; 
+    }
+    if (papel) {
+      where.papel = papel; 
+    }
+
+    const usuarios = await Usuario.findAll({ where });
+
+    return response.status(200).json(usuarios);
+
+  } catch (error) {
+    console.error(error);
+    return response.status(500).json({ err: "Erro ao listar usuários" });
+  }
+};
+
 
 export const atualizar = async (request, response) => {
   const paramValidator = getSchema.safeParse(request.params);
